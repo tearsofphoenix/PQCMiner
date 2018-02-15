@@ -22,6 +22,6 @@ std::string Block::bits2Target(uint32_t bits) {
     const size_t total = 32;
     Buffer target;
     target.resize(total, 0);
-    target.writeInt32LE(total - len, mantissa);
-    return target.toHex();
+    BufferUtil::writeInt32LE(target, total - len, mantissa);
+    return BufferUtil::toHex(target);
 }

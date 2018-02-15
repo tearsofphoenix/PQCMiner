@@ -12,34 +12,19 @@ static inline int char2int(char c) {
     return -1;
 }
 
-Buffer::Buffer(size_t count) {
-    _data = new std::vector<byte>;
-    if (count > 0) {
-        _data->resize(count);
-    }
+
+void BufferUtil::append(Buffer &b1, const Buffer &b2) {
+    b1.insert(b1.end(), b2.begin(), b2.end());
 }
 
-Buffer::~Buffer() {
-    delete _data;
-    _data = nullptr;
-}
-
-void Buffer::resize(size_t count, byte value) {
-    _data->resize(count, value);
-}
-
-void Buffer::append(const Buffer &b2) {
-    _data->insert(_data->end(), b2._data->begin(), b2._data->end());
-}
-
-Buffer *Buffer::from(const std::string &str, Type type) {
+Buffer *BufferUtil::from(const std::string &str, Type type) {
     switch (type) {
         case Hex: {
             auto *buffer = new Buffer;
 
             for (int i = 0; i < str.length(); i = i + 2) {
                 byte val = char2int(str[i]) * 16 + char2int(str[i + 1]);
-                buffer->_data->push_back(val);
+                buffer->push_back(val);
             }
             return buffer;
         }
@@ -50,7 +35,7 @@ Buffer *Buffer::from(const std::string &str, Type type) {
             auto *buffer = new Buffer;
             for (int i = 0; i < str.length(); ++i) {
                 byte val = str[i];
-                buffer->_data->push_back(val);
+                buffer->push_back(val);
             }
             return buffer;
         }
@@ -66,11 +51,11 @@ Buffer *Buffer::from(const std::string &str, Type type) {
  * @param startIndex {size_t}
  * @param val {int32_t}
  */
-void Buffer::writeInt32LE(size_t startIndex, int32_t val) {
-    (*_data)[startIndex + 3] = (byte)(val >> 24);
-    (*_data)[startIndex + 2] = (byte)(val >> 16);
-    (*_data)[startIndex + 1] = (byte)(val >> 8);
-    (*_data)[startIndex] = (byte)(val);
+void BufferUtil::writeInt32LE(Buffer &b, size_t startIndex, int32_t val) {
+    b[startIndex + 3] = (byte)(val >> 24);
+    b[startIndex + 2] = (byte)(val >> 16);
+    b[startIndex + 1] = (byte)(val >> 8);
+    b[startIndex] = (byte)(val);
 }
 
 /**
@@ -78,19 +63,19 @@ void Buffer::writeInt32LE(size_t startIndex, int32_t val) {
  * @param buffer {Buffer}
  * @return {std::string}
  */
-std::string Buffer::toHex() const {
-    return toString();
+std::string BufferUtil::toHex(const Buffer &b) {
+    return toString(b);
 }
 
-std::string Buffer::toString(Type type) const {
+std::string BufferUtil::toString(const Buffer &b, Type type) {
     switch (type) {
         case Hex: {
             std::string hex;
-            size_t size = _data->size();
+            size_t size = b.size();
             hex.resize(size * 2);
             char temp[3] = {0};
             for (int i = 0; i < size; ++i) {
-                sprintf(temp, "%02x", (*_data)[i]);
+                sprintf(temp, "%02x", b[i]);
                 hex[2 * i] = (temp[0]);
                 hex[2 * i + 1] = (temp[1]);
             }
@@ -112,9 +97,9 @@ std::string Buffer::toString(Type type) const {
  * reverse a buffer
  * @param buffer {Buffer}
  */
-void Buffer::reverse() {
-    auto start = _data->begin();
-    auto end = _data->end();
+void BufferUtil::reverse(Buffer &b) {
+    auto start = b.begin();
+    auto end = b.end();
     while (start != end) {
         if (start == --end)
             break;
@@ -129,8 +114,8 @@ void Buffer::reverse() {
  * print a buffer
  * @param buffer {Buffer}
  */
-void Buffer::print() const {
-    std::cout << toHex() << std::endl;
+void BufferUtil::print(const Buffer &b) {
+    std::cout << toHex(b) << std::endl;
 }
 
 /**
@@ -139,9 +124,7 @@ void Buffer::print() const {
  * @param b2 {Buffer}
  * @return
  */
-int Buffer::compare(const Buffer &other) const {
-    const std::vector<byte> &b1 = *_data;
-    const std::vector<byte> &b2 = *(other._data);
+int BufferUtil::compare(const Buffer &b1, const Buffer &b2) {
 
     size_t b1s = b1.size();
     size_t b2s = b2.size();
@@ -167,12 +150,4 @@ int Buffer::compare(const Buffer &other) const {
     } else {
         return -1;
     }
-}
-
-Buffer Buffer::hash(BufferHashFunc func) const {
-    std::vector<byte> h = func(*_data);
-    size_t size = h.size();
-    Buffer b(size);
-    std::copy(h.begin(), h.end(), b._data->begin());
-    return b;
 }

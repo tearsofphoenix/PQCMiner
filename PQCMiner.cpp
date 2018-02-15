@@ -27,16 +27,16 @@ float PQCMiner::difficulty(unsigned int bits) {
 
 const Buffer PQCMiner::getHash(uint64_t nonce)  {
     // Update nonce in header Buffer
-    _timeBitsNonceBuffer->writeInt32LE(8, nonce);
+    BufferUtil::writeInt32LE(*_timeBitsNonceBuffer, 8, nonce);
     Buffer buffer;
-    buffer.append(*_versionBuffer);
-    buffer.append(*_reversedPrevBlockHash);
-    buffer.append(*_reversedMrklRoot);
-    buffer.append(*_timeBitsNonceBuffer);
+    BufferUtil::append(buffer, *_versionBuffer);
+    BufferUtil::append(buffer, *_reversedPrevBlockHash);
+    BufferUtil::append(buffer, *_reversedMrklRoot);
+    BufferUtil::append(buffer, *_timeBitsNonceBuffer);
 
     // Double sha256 hash the header
-    Buffer result = buffer.hash(_hashfunc);
-    result.reverse();
+    Buffer result = _hashfunc(buffer);
+    BufferUtil::reverse(result);
     return result;
 }
 
@@ -62,14 +62,14 @@ bool PQCMiner::verifyNonce(const Buffer &block, int32_t checknonce)  {
 }
 
 bool PQCMiner::checkHash(const Buffer &hash) {
-    return _targetBuffer->compare(hash) > 0;
+    return BufferUtil::compare(*_targetBuffer, hash) > 0;
 }
 
 PQCMiner::PQCMiner(const Block &block) {
 
     // Initialize local variables with Block data
-    Buffer *prevBlockHash = Buffer::from(block.previousblockhash);
-    Buffer *mrklRoot = Buffer::from(block.merkleroot);
+    Buffer *prevBlockHash = BufferUtil::from(block.previousblockhash);
+    Buffer *mrklRoot = BufferUtil::from(block.merkleroot);
     const int32_t ver = block.version;
     const int32_t time = block.time;
 
@@ -83,38 +83,38 @@ PQCMiner::PQCMiner(const Block &block) {
     std::string targetHex = Block::bits2Target(bits);
     std::cout << "target:" << targetHex << std::endl;
 
-    _targetBuffer = Buffer::from(targetHex);
+    _targetBuffer = BufferUtil::from(targetHex);
 
     // Create little-endian long int (4 bytes) with the version on the first byte
     _versionBuffer = new Buffer(4);
-    _versionBuffer->writeInt32LE(0, ver);
+    BufferUtil::writeInt32LE(*_versionBuffer, 0, ver);
 
     // Reverse the previous Block Hash and the merkle_root
-    prevBlockHash->reverse();
+    BufferUtil::reverse(*prevBlockHash);
     _reversedPrevBlockHash = prevBlockHash;
-    mrklRoot->reverse();
+    BufferUtil::reverse(*mrklRoot);
     _reversedMrklRoot = mrklRoot;
 
     // Buffer with time (4 Bytes), bits (4 Bytes) and nonce (4 Bytes) (later added and updated on each hash)
 
     _timeBitsNonceBuffer = new Buffer;
     _timeBitsNonceBuffer->resize(12, 0);
-    _timeBitsNonceBuffer->writeInt32LE(0, time);
-    _timeBitsNonceBuffer->writeInt32LE(4, bits);
+    BufferUtil::writeInt32LE(*_timeBitsNonceBuffer, 0, time);
+    BufferUtil::writeInt32LE(*_timeBitsNonceBuffer, 4, bits);
 
     _hashfunc = PQCHash;
 }
 
 void PQCMiner::run(uint64_t nonce) {
     bool found = false;
-    while (nonce < 8561950000 && !found) {
+    while (nonce < 0xFFFFFFFF && !found) {
         auto hash = getHash(nonce);
         if (nonce % 100000 == 0) {
-            std::cout << nonce << "  " << hash.toHex() << std::endl;
+            std::cout << nonce << "  " << BufferUtil::toHex(hash) << std::endl;
         }
         found = checkHash(hash);
         if (found) {
-            std::cout << nonce << hash.toHex() << std::endl;
+            std::cout << nonce << BufferUtil::toHex(hash) << std::endl;
             break;
         }
         nonce++;

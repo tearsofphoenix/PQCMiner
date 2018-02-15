@@ -8,12 +8,10 @@
 #include <vector>
 #include "types.h"
 
-class Buffer;
-typedef std::vector<byte> (* BufferHashFunc)(const std::vector<byte> &data);
+typedef std::vector<byte> Buffer;
+typedef Buffer (* BufferHashFunc)(const Buffer &data);
 
-class Buffer {
-private:
-    std::vector<byte> *_data;
+class BufferUtil {
 public:
     typedef enum {
         Hex,
@@ -21,47 +19,42 @@ public:
         Base64
     } Type;
 
-    Buffer(size_t count = 0);
-
-    ~Buffer();
-
     static Buffer *from(const std::string &str, Type type = Hex);
 
     /**
      * append buffer b2 to this buffer
      * @param b2
      */
-    void append(const Buffer &b2);
+    static void append(Buffer &b1, const Buffer &b2);
 
-    void resize(size_t count, byte value);
     /**
      *  write an int32 value at index into a Buffer
      * @param buffer {Buffer}
      * @param startIndex {size_t}
      * @param val {int32_t}
      */
-    void writeInt32LE(size_t startIndex, int32_t val);
+    static void writeInt32LE(Buffer &b, size_t startIndex, int32_t val);
 
     /**
      *  convert buffer to hex string
      * @param buffer {Buffer}
      * @return {std::string}
      */
-    std::string toHex() const;
+    static std::string toHex(const Buffer &b);
 
-    std::string toString(Type type = Hex) const;
+    static std::string toString(const Buffer &b, Type type = Hex);
 
     /**
      * reverse a buffer
      * @param buffer {Buffer}
      */
-    void reverse();
+    static void reverse(Buffer &b);
 
     /**
      * print a buffer
      * @param buffer {Buffer}
      */
-    void print() const;
+    static void print(const Buffer &b);
 
     /**
      * compare two buffers. if b1 > b2, return 1, if b1 == b2, return 0, else return -1
@@ -69,9 +62,7 @@ public:
      * @param b2 {Buffer}
      * @return
      */
-    int compare(const Buffer &b2) const;
-
-    Buffer hash(BufferHashFunc func) const;
+    static int compare(const Buffer &b1, const Buffer &b2);
 };
 
 
