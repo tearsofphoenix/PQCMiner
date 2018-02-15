@@ -31,7 +31,15 @@ static void mine_test() {
                 "4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b",
                 1518511836, 0x1d00ffff);
     PQCMiner miner(block);
-    miner.run(991100000);
+    miner.setNonce(1014000000);
+    miner.run();
+}
+
+static void auto_multi_thread() {
+    Block block(1, "0000000000000000000000000000000000000000000000000000000000000000",
+                "4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b",
+                1518511836, 0x1d00ffff);
+    PQCMiner::runMultiThread(block, 1014000000);
 }
 
 static void bitcoin_test() {
@@ -76,7 +84,8 @@ static void compare_test() {
 int main() {
 //    buffer_test();
 //    reverse_test();
-    mine_test();
+//    mine_test();
+    auto_multi_thread();
 //    compare_test();
 //    block_hex_double_test();
 //    bitcoin_test();

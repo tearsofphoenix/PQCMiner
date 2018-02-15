@@ -2,6 +2,8 @@
 // Created by Isaac on 2018/2/14.
 //
 #include "PQCMiner.h"
+#include <boost/lexical_cast.hpp>
+#include <boost/thread.hpp>
 #if CRYPTOPP_DIR_PLUS
 #  include <crypto++/sha.h>
 #else
@@ -103,11 +105,17 @@ PQCMiner::PQCMiner(const Block &block) {
     BufferUtil::writeInt32LE(*_timeBitsNonceBuffer, 4, bits);
 
     _hashfunc = PQCHash;
+    _maxNonce = MaxNonce;
 }
 
-void PQCMiner::run(uint64_t nonce) {
+void PQCMiner::run() {
     bool found = false;
-    while (nonce < 0xFFFFFFFF && !found) {
+    uint64_t nonce = _nonce;
+    uint64_t maxNonce = _maxNonce;
+    std::string threadId = boost::lexical_cast<std::string>(boost::this_thread::get_id());
+    std::cout << "thread:" << threadId << "range: [" << nonce << ":" << maxNonce << "]" << std::endl;
+
+    while (nonce <= maxNonce && !found) {
         auto hash = getHash(nonce);
         if (nonce % 100000 == 0) {
             std::cout << nonce << "  " << BufferUtil::toHex(hash) << std::endl;
@@ -118,9 +126,34 @@ void PQCMiner::run(uint64_t nonce) {
             break;
         }
         nonce++;
+        _nonce = nonce;
     }
 }
 
+void PQCMiner::operator() (void) {
+    run();
+}
+
+void PQCMiner::runMultiThread(const Block &block, uint64_t nonce) {
+    unsigned int count = boost::thread::hardware_concurrency();
+    uint64_t step = (MaxNonce - nonce) / count;
+    boost::thread *threads[count];
+
+    for (int i = 0; i < count; ++i) {
+        PQCMiner miner(block);
+        miner.setNonce(nonce + step * i);
+        miner.setMaxNonce(nonce + step * i + step);
+        threads[i] = new boost::thread(miner);
+    }
+
+    for (int j = 0; j < count; ++j) {
+        threads[j]->join();
+        delete threads[j];
+        threads[j] = nullptr;
+    }
+}
+
+//-----------
 static cube256hash hash;
 std::vector<byte> PQCHash(const std::vector<byte> &buffer) {
     return hash(hash(buffer));

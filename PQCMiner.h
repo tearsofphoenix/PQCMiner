@@ -20,7 +20,11 @@ private:
     const Buffer *_reversedMrklRoot;
     Buffer *_timeBitsNonceBuffer;
     BufferHashFunc _hashfunc;
+    uint64_t _nonce;
+    uint64_t _maxNonce;
 public:
+    static const uint64_t MaxNonce = 0xFFFFFFFF;
+
     PQCMiner(const Block &block);
     ~PQCMiner() = default;
 
@@ -34,6 +38,19 @@ public:
     inline BufferHashFunc getHashFunc() {
         return _hashfunc;
     }
+    inline void setNonce(uint64_t nonce) {
+        _nonce = nonce;
+    }
+    inline uint64_t getNonce() {
+        return _nonce;
+    }
+
+    inline void setMaxNonce(uint64_t maxNonce) {
+        _maxNonce = maxNonce;
+    }
+    inline uint64_t getMaxNonce(void) {
+        return _maxNonce;
+    }
 
     bool verifyNonce(const Buffer &block, int32_t checknonce);
 
@@ -44,7 +61,10 @@ public:
      */
     bool checkHash(const Buffer &hash);
 
-    void run(uint64_t nonce);
+    void run();
+
+    void operator() (void);
+    static void runMultiThread(const Block &block, uint64_t nonce);
 };
 
 extern std::vector<byte> PQCHash(const std::vector<byte> &buffer);
