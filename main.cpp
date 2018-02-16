@@ -39,7 +39,7 @@ static void auto_multi_thread() {
     Block block(1, "0000000000000000000000000000000000000000000000000000000000000000",
                 "4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b",
                 1518511836, 0x1d00ffff);
-    PQCMiner::runMultiThread(block, 1014000000);
+    PQCMiner::runMultiThread(block, 1423400000);
 }
 
 static void bitcoin_test() {
@@ -65,6 +65,23 @@ static void bitcoin_test() {
     }
 }
 
+static void bitcoin_test2() {
+    Block block(1, "0000000000000000000000000000000000000000000000000000000000000000",
+                "4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b",
+                1231006505, 0x1d00ffff);
+    PQCMiner miner(block);
+    miner.setHashFunc(BitcoinHash);
+    miner.setNonce(2083236893);
+    miner.run();
+}
+
+static void bitcoin_mt_test() {
+    Block block(1, "0000000000000000000000000000000000000000000000000000000000000000",
+                "4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b",
+                1231006505, 0x1d00ffff);
+    PQCMiner::runMultiThread(block, 2083200000, BitcoinHash);
+}
+
 static void compare_test() {
     std::string str = "4b094f5c4b00f721a7edf47c36862e4f1e08c5c7d35558c157a9574daeaed796";
     Buffer *buffer = BufferUtil::from(str);
@@ -86,9 +103,10 @@ int main() {
 //    reverse_test();
 //    mine_test();
     auto_multi_thread();
+//    bitcoin_mt_test();
 //    compare_test();
 //    block_hex_double_test();
-//    bitcoin_test();
+//    bitcoin_test2();
 
     return 0;
 }

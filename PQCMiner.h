@@ -12,6 +12,10 @@
 #include "Block.h"
 #include "Buffer.h"
 
+extern std::vector<byte> PQCHash(const std::vector<byte> &buffer);
+
+extern std::vector<byte> BitcoinHash(const std::vector<byte> &buffer);
+
 class PQCMiner {
 private:
     const Buffer *_targetBuffer;
@@ -64,12 +68,8 @@ public:
     void run();
 
     void operator() (void);
-    static void runMultiThread(const Block &block, uint64_t nonce);
+    static void runMultiThread(const Block &block, uint64_t nonce, BufferHashFunc func = PQCHash);
 };
-
-extern std::vector<byte> PQCHash(const std::vector<byte> &buffer);
-
-extern std::vector<byte> BitcoinHash(const std::vector<byte> &buffer);
 
 extern float fast_log(float val);
 

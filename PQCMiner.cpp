@@ -122,7 +122,7 @@ void PQCMiner::run() {
         }
         found = checkHash(hash);
         if (found) {
-            std::cout << nonce << BufferUtil::toHex(hash) << std::endl;
+            std::cout << "found: " << nonce << "  " << BufferUtil::toHex(hash) << std::endl;
             break;
         }
         nonce++;
@@ -134,7 +134,7 @@ void PQCMiner::operator() (void) {
     run();
 }
 
-void PQCMiner::runMultiThread(const Block &block, uint64_t nonce) {
+void PQCMiner::runMultiThread(const Block &block, uint64_t nonce, BufferHashFunc func) {
     unsigned int count = boost::thread::hardware_concurrency();
     uint64_t step = (MaxNonce - nonce) / count;
     boost::thread *threads[count];
@@ -142,6 +142,7 @@ void PQCMiner::runMultiThread(const Block &block, uint64_t nonce) {
     for (int i = 0; i < count; ++i) {
         PQCMiner miner(block);
         miner.setNonce(nonce + step * i);
+        miner.setHashFunc(func);
         miner.setMaxNonce(nonce + step * i + step);
         threads[i] = new boost::thread(miner);
     }
