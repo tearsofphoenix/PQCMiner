@@ -65,10 +65,20 @@ public:
      */
     bool checkHash(const Buffer &hash);
 
+    /**
+     * start mine
+     */
     void run();
 
+    /**
+     * alias of run()
+     */
     void operator() (void);
+
     static void runMultiThread(const Block &block, uint64_t nonce, BufferHashFunc func = PQCHash);
+
+    static void runMultiThread(const Block &block, const std::vector<uint64_t> &start, const std::vector<uint64_t> &end,
+                               BufferHashFunc func = PQCHash);
 };
 
 extern float fast_log(float val);

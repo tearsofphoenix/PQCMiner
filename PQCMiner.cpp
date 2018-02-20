@@ -67,6 +67,9 @@ bool PQCMiner::checkHash(const Buffer &hash) {
     return BufferUtil::compare(*_targetBuffer, hash) > 0;
 }
 
+static int64_t foundNonce;
+static std::mutex nonceLock;
+
 PQCMiner::PQCMiner(const Block &block) {
 
     // Initialize local variables with Block data
@@ -106,27 +109,30 @@ PQCMiner::PQCMiner(const Block &block) {
 
     _hashfunc = PQCHash;
     _maxNonce = MaxNonce;
+    foundNonce = 0;
 }
 
 void PQCMiner::run() {
-    bool found = false;
     uint64_t nonce = _nonce;
     uint64_t maxNonce = _maxNonce;
+    uint64_t total = maxNonce - nonce;
     std::string threadId = boost::lexical_cast<std::string>(boost::this_thread::get_id());
     std::cout << "thread:" << threadId << "range: [" << nonce << ":" << maxNonce << "]" << std::endl;
 
-    while (nonce <= maxNonce && !found) {
+    while (nonce <= maxNonce && foundNonce == 0) {
         auto hash = getHash(nonce);
         if (nonce % 100000 == 0) {
-            std::cout << nonce << "  " << BufferUtil::toHex(hash) << std::endl;
+            std::cout << nonce << "  " << (nonce - _nonce) * 100.0 / total << "%" << std::endl;
         }
-        found = checkHash(hash);
+        bool found = checkHash(hash);
         if (found) {
+            nonceLock.lock();
+            foundNonce = nonce;
             std::cout << "found: " << nonce << "  " << BufferUtil::toHex(hash) << std::endl;
+            nonceLock.unlock();
             break;
         }
         nonce++;
-        _nonce = nonce;
     }
 }
 
@@ -137,13 +143,28 @@ void PQCMiner::operator() (void) {
 void PQCMiner::runMultiThread(const Block &block, uint64_t nonce, BufferHashFunc func) {
     unsigned int count = boost::thread::hardware_concurrency();
     uint64_t step = (MaxNonce - nonce) / count;
-    boost::thread *threads[count];
+
+    std::vector<uint64_t> start;
+    std::vector<uint64_t> end;
 
     for (int i = 0; i < count; ++i) {
+        start.push_back(nonce + step * i);
+        end.push_back(nonce + step * i + step);
+    }
+
+    runMultiThread(block, start, end, func);
+}
+
+void PQCMiner::runMultiThread(const Block &block, const std::vector<uint64_t> &start, const std::vector<uint64_t> &end,
+                         BufferHashFunc func) {
+    auto count = start.size();
+    boost::thread *threads[count];
+
+    for (auto i = 0; i < count; ++i) {
         PQCMiner miner(block);
-        miner.setNonce(nonce + step * i);
+        miner.setNonce(start[i]);
         miner.setHashFunc(func);
-        miner.setMaxNonce(nonce + step * i + step);
+        miner.setMaxNonce(end[i]);
         threads[i] = new boost::thread(miner);
     }
 
@@ -153,7 +174,6 @@ void PQCMiner::runMultiThread(const Block &block, uint64_t nonce, BufferHashFunc
         threads[j] = nullptr;
     }
 }
-
 //-----------
 static cube256hash hash;
 std::vector<byte> PQCHash(const std::vector<byte> &buffer) {

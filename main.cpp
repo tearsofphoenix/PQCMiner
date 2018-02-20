@@ -39,7 +39,10 @@ static void auto_multi_thread() {
     Block block(1, "0000000000000000000000000000000000000000000000000000000000000000",
                 "4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b",
                 1518511836, 0x1d00ffff);
-    PQCMiner::runMultiThread(block, 1423400000);
+//    PQCMiner::runMultiThread(block, 1423400000);
+    std::vector<uint64_t> start = {1756600000, 2576600000, 3396800000, 4216800000};
+    std::vector<uint64_t> end   = {1834100000, 2654200000, 3474200000, PQCMiner::MaxNonce};
+    PQCMiner::runMultiThread(block, start, end);
 }
 
 static void bitcoin_test() {
@@ -68,18 +71,18 @@ static void bitcoin_test() {
 static void bitcoin_test2() {
     Block block(1, "0000000000000000000000000000000000000000000000000000000000000000",
                 "4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b",
-                1231006505, 0x1d00ffff);
+                1518511836, 0x1d00ffff);
     PQCMiner miner(block);
     miner.setHashFunc(BitcoinHash);
-    miner.setNonce(2083236893);
+    miner.setNonce(0);
     miner.run();
 }
 
 static void bitcoin_mt_test() {
     Block block(1, "0000000000000000000000000000000000000000000000000000000000000000",
                 "4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b",
-                1231006505, 0x1d00ffff);
-    PQCMiner::runMultiThread(block, 2083200000, BitcoinHash);
+                1518511836, 0x1d00ffff);
+    PQCMiner::runMultiThread(block, 72100000, BitcoinHash);
 }
 
 static void compare_test() {
