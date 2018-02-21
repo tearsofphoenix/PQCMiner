@@ -14,6 +14,8 @@
 
 extern std::vector<byte> PQCHash(const std::vector<byte> &buffer);
 
+extern std::vector<byte> PQCMixHash(const std::vector<byte> &buffer);
+
 extern std::vector<byte> BitcoinHash(const std::vector<byte> &buffer);
 
 class PQCMiner {

@@ -40,9 +40,8 @@ static void auto_multi_thread() {
                 "4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b",
                 1518511836, 0x1d00ffff);
 //    PQCMiner::runMultiThread(block, 1423400000);
-    std::vector<uint64_t> start = {1756600000, 2576600000, 3396800000, 4216800000};
-    std::vector<uint64_t> end   = {1834100000, 2654200000, 3474200000, PQCMiner::MaxNonce};
-    PQCMiner::runMultiThread(block, start, end);
+    // found: 1614136539  00000000fbe6eeb849b0c12925dfdb08626923e799190adbe2e074c3300042c2
+    PQCMiner::runMultiThread(block, 1614136539, PQCMixHash);
 }
 
 static void bitcoin_test() {

@@ -180,7 +180,6 @@ std::vector<byte> PQCHash(const std::vector<byte> &buffer) {
     return hash(hash(buffer));
 }
 
-
 static std::vector<byte> sha256(const std::vector<byte> &a) {
     size_t size = CryptoPP::SHA256::DIGESTSIZE;
     std::vector<byte> r;
@@ -193,4 +192,9 @@ static std::vector<byte> sha256(const std::vector<byte> &a) {
 
 std::vector<byte> BitcoinHash(const std::vector<byte> &buffer) {
     return sha256(sha256(buffer));
+}
+
+
+std::vector<byte> PQCMixHash(const std::vector<byte> &buffer) {
+    return sha256(hash(buffer));
 }
