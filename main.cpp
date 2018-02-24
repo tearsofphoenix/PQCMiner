@@ -41,7 +41,7 @@ static void auto_multi_thread() {
                 1518511836, 0x1d00ffff);
 //    PQCMiner::runMultiThread(block, 1423400000);
     // found: 1614136539  00000000fbe6eeb849b0c12925dfdb08626923e799190adbe2e074c3300042c2
-    PQCMiner::runMultiThread(block, 1614136539, PQCMixHash);
+    PQCMiner::runMultiThread(block, 1614036539, PQCMixHash);
 }
 
 static void bitcoin_test() {

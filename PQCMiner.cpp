@@ -2,6 +2,7 @@
 // Created by Isaac on 2018/2/14.
 //
 #include "PQCMiner.h"
+#include <mutex>
 #include <boost/lexical_cast.hpp>
 #include <boost/thread.hpp>
 #if CRYPTOPP_DIR_PLUS
